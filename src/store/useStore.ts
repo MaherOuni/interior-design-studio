@@ -49,6 +49,8 @@ interface StoreState {
   propertiesOpen: boolean;
   /** Mirrors DESKTOP_QUERY, kept here so actions can branch on the breakpoint. */
   isDesktop: boolean;
+  /** True while a catalog card is mid-drag, so the drawer scrim can step aside. */
+  isDraggingCatalogItem: boolean;
 
   // ---- scene data ----
   walls: Wall[];
@@ -65,6 +67,7 @@ interface StoreState {
   toggleSidebar: () => void;
   toggleProperties: () => void;
   closePanels: () => void;
+  setDraggingCatalogItem: (dragging: boolean) => void;
   syncPanelsToViewport: (isDesktop: boolean) => void;
 
   // ---- wall actions ----
@@ -101,6 +104,7 @@ export const useStore = create<StoreState>((set, get) => ({
   sidebarOpen: isDesktopNow(),
   propertiesOpen: isDesktopNow(),
   isDesktop: isDesktopNow(),
+  isDraggingCatalogItem: false,
 
   walls: [],
   furniture: [],
@@ -114,6 +118,7 @@ export const useStore = create<StoreState>((set, get) => ({
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
   toggleProperties: () => set((s) => ({ propertiesOpen: !s.propertiesOpen })),
   closePanels: () => set({ sidebarOpen: false, propertiesOpen: false }),
+  setDraggingCatalogItem: (isDraggingCatalogItem) => set({ isDraggingCatalogItem }),
   syncPanelsToViewport: (isDesktop) =>
     set((s) =>
       s.isDesktop === isDesktop

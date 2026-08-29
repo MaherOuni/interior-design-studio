@@ -15,6 +15,7 @@ export default function App() {
   const sidebarOpen = useStore((s) => s.sidebarOpen);
   const propertiesOpen = useStore((s) => s.propertiesOpen);
   const closePanels = useStore((s) => s.closePanels);
+  const isDraggingCatalogItem = useStore((s) => s.isDraggingCatalogItem);
   const syncPanelsToViewport = useStore((s) => s.syncPanelsToViewport);
 
   const isDesktop = useMediaQuery(DESKTOP_QUERY);
@@ -45,8 +46,10 @@ export default function App() {
 
   const is2D = mode === "2D";
   // Below the breakpoint the panels float above the viewport, so an open one
-  // needs a scrim to catch the dismissing tap.
-  const showScrim = !isDesktop && (sidebarOpen || propertiesOpen);
+  // needs a scrim to catch the dismissing tap. It has to yield during a catalog
+  // drag though, or it intercepts the drop meant for the canvas underneath.
+  const showScrim =
+    !isDesktop && (sidebarOpen || propertiesOpen) && !isDraggingCatalogItem;
 
   return (
     <div className="flex h-[100dvh] w-screen flex-col overflow-hidden bg-[#0b0e13]">

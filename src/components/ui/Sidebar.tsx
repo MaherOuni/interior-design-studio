@@ -51,10 +51,22 @@ function CatalogCard({ item }: { item: CatalogItem }) {
   const addFurniture = useStore((s) => s.addFurniture);
   const isDesktop = useStore((s) => s.isDesktop);
   const closePanels = useStore((s) => s.closePanels);
+  const setDraggingCatalogItem = useStore((s) => s.setDraggingCatalogItem);
 
   const onDragStart = (e: DragEvent) => {
     e.dataTransfer.setData("application/x-furniture", item.id);
     e.dataTransfer.effectAllowed = "copy";
+    // As a drawer, the catalog floats above the viewport behind a scrim. The
+    // scrim would otherwise be the topmost drop target and swallow the drop,
+    // so flag the drag and let it disable itself for the duration.
+    setDraggingCatalogItem(true);
+  };
+
+  const onDragEnd = (e: DragEvent) => {
+    setDraggingCatalogItem(false);
+    // dropEffect is "none" when the drag was cancelled or landed nowhere;
+    // only get out of the way once something was actually placed.
+    if (!isDesktop && e.dataTransfer.dropEffect !== "none") closePanels();
   };
 
   const onAdd = () => {
@@ -68,6 +80,7 @@ function CatalogCard({ item }: { item: CatalogItem }) {
     <button
       draggable
       onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
       onDoubleClick={onAdd}
       title={`${item.name} — drag into the scene (or double-click)`}
       className="group flex w-full items-center gap-3 rounded-lg border border-line/70 bg-panel-3/60 px-3 py-2 text-left transition hover:border-accent/60 hover:bg-panel-3 active:scale-[0.98]"
