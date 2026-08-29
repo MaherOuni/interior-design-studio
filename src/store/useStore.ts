@@ -30,6 +30,12 @@ export interface FurnitureItem {
 export const WALL_HEIGHT = 2.8;
 export const WALL_THICKNESS = 0.12;
 
+/** Above this width the panels dock beside the viewport; below it they become drawers. */
+export const DESKTOP_QUERY = "(min-width: 1024px)";
+
+const isDesktopNow = () =>
+  typeof window !== "undefined" && window.matchMedia(DESKTOP_QUERY).matches;
+
 interface StoreState {
   // ---- view ----
   mode: Mode;
@@ -37,6 +43,12 @@ interface StoreState {
   gridSize: number; // snap step in meters
   snapEnabled: boolean;
   showGrid: boolean;
+
+  // ---- panel layout ----
+  sidebarOpen: boolean;
+  propertiesOpen: boolean;
+  /** Mirrors DESKTOP_QUERY, kept here so actions can branch on the breakpoint. */
+  isDesktop: boolean;
 
   // ---- scene data ----
   walls: Wall[];
@@ -48,6 +60,12 @@ interface StoreState {
   setTool: (t: Tool) => void;
   toggleSnap: () => void;
   toggleGrid: () => void;
+
+  // ---- panel actions ----
+  toggleSidebar: () => void;
+  toggleProperties: () => void;
+  closePanels: () => void;
+  syncPanelsToViewport: (isDesktop: boolean) => void;
 
   // ---- wall actions ----
   addWall: (start: Vec2, end: Vec2) => string;
@@ -80,6 +98,10 @@ export const useStore = create<StoreState>((set, get) => ({
   snapEnabled: true,
   showGrid: true,
 
+  sidebarOpen: isDesktopNow(),
+  propertiesOpen: isDesktopNow(),
+  isDesktop: isDesktopNow(),
+
   walls: [],
   furniture: [],
   selectedId: null,
@@ -88,6 +110,19 @@ export const useStore = create<StoreState>((set, get) => ({
   setTool: (tool) => set({ tool, selectedId: null }),
   toggleSnap: () => set((s) => ({ snapEnabled: !s.snapEnabled })),
   toggleGrid: () => set((s) => ({ showGrid: !s.showGrid })),
+
+  toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
+  toggleProperties: () => set((s) => ({ propertiesOpen: !s.propertiesOpen })),
+  closePanels: () => set({ sidebarOpen: false, propertiesOpen: false }),
+  syncPanelsToViewport: (isDesktop) =>
+    set((s) =>
+      s.isDesktop === isDesktop
+        ? { isDesktop }
+        : // Only reset the panels when the breakpoint actually flips, so a
+          // deliberate collapse survives ordinary resizing: docked open on
+          // desktop, dismissed on mobile to leave the viewport full-bleed.
+          { isDesktop, sidebarOpen: isDesktop, propertiesOpen: isDesktop }
+    ),
 
   addWall: (start, end) => {
     const id = uid("wall");

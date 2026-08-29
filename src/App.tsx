@@ -4,18 +4,30 @@ import Sidebar from "./components/ui/Sidebar";
 import PropertiesPanel from "./components/ui/PropertiesPanel";
 import Viewport2D from "./components/viewport2d/Viewport2D";
 import Viewport3D from "./components/viewport3d/Viewport3D";
-import { useStore } from "./store/useStore";
+import { useMediaQuery } from "./hooks/useMediaQuery";
+import { DESKTOP_QUERY, useStore } from "./store/useStore";
 
 export default function App() {
   const mode = useStore((s) => s.mode);
   const setTool = useStore((s) => s.setTool);
   const removeSelected = useStore((s) => s.removeSelected);
   const loadSample = useStore((s) => s.loadSample);
+  const sidebarOpen = useStore((s) => s.sidebarOpen);
+  const propertiesOpen = useStore((s) => s.propertiesOpen);
+  const closePanels = useStore((s) => s.closePanels);
+  const syncPanelsToViewport = useStore((s) => s.syncPanelsToViewport);
+
+  const isDesktop = useMediaQuery(DESKTOP_QUERY);
 
   // seed a sample room on first load
   useEffect(() => {
     loadSample();
   }, [loadSample]);
+
+  // keep panel state in step with the breakpoint
+  useEffect(() => {
+    syncPanelsToViewport(isDesktop);
+  }, [isDesktop, syncPanelsToViewport]);
 
   // global keyboard shortcuts
   useEffect(() => {
@@ -25,17 +37,22 @@ export default function App() {
       if (e.key === "v") setTool("select");
       if (e.key === "w") setTool("wall");
       if (e.key === "Delete" || e.key === "Backspace") removeSelected();
+      if (e.key === "Escape") closePanels();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [setTool, removeSelected]);
+  }, [setTool, removeSelected, closePanels]);
 
   const is2D = mode === "2D";
+  // Below the breakpoint the panels float above the viewport, so an open one
+  // needs a scrim to catch the dismissing tap.
+  const showScrim = !isDesktop && (sidebarOpen || propertiesOpen);
 
   return (
-    <div className="flex h-screen w-screen flex-col overflow-hidden bg-[#0b0e13]">
+    <div className="flex h-[100dvh] w-screen flex-col overflow-hidden bg-[#0b0e13]">
       <Toolbar />
-      <div className="flex min-h-0 flex-1">
+      {/* `relative` anchors the drawer positioning of both panels */}
+      <div className="relative flex min-h-0 flex-1">
         <Sidebar />
 
         {/* viewport stack — both mounted, crossfaded for smooth transitions.
@@ -66,6 +83,14 @@ export default function App() {
             <Viewport3D active={!is2D} />
           </div>
         </main>
+
+        <div
+          onClick={closePanels}
+          aria-hidden
+          className={`absolute inset-0 z-20 bg-black/60 transition-opacity duration-300 lg:hidden ${
+            showScrim ? "opacity-100" : "pointer-events-none opacity-0"
+          }`}
+        />
 
         <PropertiesPanel />
       </div>

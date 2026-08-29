@@ -8,6 +8,8 @@ import {
   Sparkles,
   LayoutGrid,
   Box,
+  PanelLeft,
+  PanelRight,
 } from "lucide-react";
 import { useStore, type Tool } from "../../store/useStore";
 import { cn } from "../../lib/utils";
@@ -52,6 +54,10 @@ export default function Toolbar() {
   const toggleGrid = useStore((s) => s.toggleGrid);
   const clearScene = useStore((s) => s.clearScene);
   const loadSample = useStore((s) => s.loadSample);
+  const sidebarOpen = useStore((s) => s.sidebarOpen);
+  const propertiesOpen = useStore((s) => s.propertiesOpen);
+  const toggleSidebar = useStore((s) => s.toggleSidebar);
+  const toggleProperties = useStore((s) => s.toggleProperties);
 
   const tools: { id: Tool; icon: React.ReactNode; label: string }[] = [
     { id: "select", icon: <MousePointer2 size={17} />, label: "Select / Move (V)" },
@@ -60,19 +66,27 @@ export default function Toolbar() {
   ];
 
   return (
-    <header className="flex h-14 shrink-0 items-center gap-3 border-b border-line bg-panel px-4">
+    <header className="flex min-h-[3.5rem] shrink-0 flex-wrap items-center gap-2 border-b border-line bg-panel px-3 py-2 sm:h-14 sm:flex-nowrap sm:gap-3 sm:px-4 sm:py-0">
       {/* brand */}
-      <div className="flex items-center gap-2 pr-2">
+      <div className="flex items-center gap-2 sm:pr-2">
         <div className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-accent to-accent-2 text-white">
           <LayoutGrid size={17} />
         </div>
-        <div className="leading-tight">
+        <div className="hidden leading-tight sm:block">
           <div className="text-sm font-semibold text-ink">Interior Studio</div>
           <div className="text-[10px] text-muted">2D / 3D Room Planner</div>
         </div>
       </div>
 
-      <div className="h-7 w-px bg-line" />
+      <IconButton
+        title="Toggle catalog panel"
+        active={sidebarOpen}
+        onClick={toggleSidebar}
+      >
+        <PanelLeft size={17} />
+      </IconButton>
+
+      <div className="hidden h-7 w-px bg-line sm:block" />
 
       {/* 2D-only drawing tools */}
       <div
@@ -93,7 +107,7 @@ export default function Toolbar() {
         ))}
       </div>
 
-      <div className="h-7 w-px bg-line" />
+      <div className="hidden h-7 w-px bg-line sm:block" />
 
       <IconButton title="Snap to grid" active={snapEnabled} onClick={toggleSnap}>
         <Magnet size={17} />
@@ -106,16 +120,16 @@ export default function Toolbar() {
         <button
           onClick={loadSample}
           title="Load a sample room"
-          className="flex items-center gap-1.5 rounded-md border border-line px-3 py-1.5 text-xs text-muted transition hover:border-accent/60 hover:text-ink"
+          className="flex items-center gap-1.5 rounded-md border border-line px-2.5 py-1.5 text-xs text-muted transition hover:border-accent/60 hover:text-ink sm:px-3"
         >
-          <Sparkles size={14} /> Sample
+          <Sparkles size={14} /> <span className="hidden sm:inline">Sample</span>
         </button>
         <button
           onClick={clearScene}
           title="Clear everything"
-          className="flex items-center gap-1.5 rounded-md border border-line px-3 py-1.5 text-xs text-muted transition hover:border-red-500/60 hover:text-red-300"
+          className="flex items-center gap-1.5 rounded-md border border-line px-2.5 py-1.5 text-xs text-muted transition hover:border-red-500/60 hover:text-red-300 sm:px-3"
         >
-          <Trash2 size={14} /> Clear
+          <Trash2 size={14} /> <span className="hidden sm:inline">Clear</span>
         </button>
 
         {/* 2D / 3D segmented toggle */}
@@ -143,6 +157,14 @@ export default function Toolbar() {
             <Box size={14} /> 3D
           </button>
         </div>
+
+        <IconButton
+          title="Toggle properties panel"
+          active={propertiesOpen}
+          onClick={toggleProperties}
+        >
+          <PanelRight size={17} />
+        </IconButton>
       </div>
     </header>
   );
